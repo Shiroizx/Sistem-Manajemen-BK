@@ -1,36 +1,172 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistem Manajemen BK Sekolah
 
-## Getting Started
+Aplikasi web untuk mengelola Bimbingan dan Konseling (BK) di sekolah. Sistem ini memungkinkan **Admin**, **Guru BK**, dan **Siswa** mengelola kategori poin (pelanggaran & prestasi), catatan siswa, serta melihat skor dan riwayat BK.
 
-First, run the development server:
+---
+
+## Fitur
+
+- **Admin** — Mengelola kategori poin, pengguna, dan data sistem
+- **Guru BK** — Mencatat pelanggaran/prestasi siswa, mengelola kategori, melihat daftar siswa dan detail
+- **Siswa** — Melihat skor BK, riwayat catatan, dan profil sendiri
+- **Publik** — Pencarian NIS untuk cek skor tanpa login
+- Autentikasi berbasis Supabase Auth dengan role (admin, guru_bk, student)
+- Database aman dengan Row Level Security (RLS)
+
+---
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Database & Auth:** Supabase (PostgreSQL + Auth)
+- **UI:** HeroUI v3, Tailwind CSS 4, Motion, GSAP
+- **Bahasa:** TypeScript
+
+---
+
+## Prasyarat
+
+- **Node.js** 18.x atau lebih baru
+- **npm** (atau yarn/pnpm)
+- **Akun Supabase** — [Daftar gratis](https://supabase.com)
+
+---
+
+## Cara Clone Repositori
+
+Clone proyek ke komputer Anda:
+
+```bash
+git clone https://github.com/Shiroizx/Sistem-Manajemen-BK.git
+cd Sistem-Manajemen-BK
+```
+
+Atau dengan SSH (jika sudah mengatur kunci SSH):
+
+```bash
+git clone git@github.com:Shiroizx/Sistem-Manajemen-BK.git
+cd Sistem-Manajemen-BK
+```
+
+---
+
+## Instalasi
+
+### 1. Pasang dependensi
+
+```bash
+npm install
+```
+
+### 2. Konfigurasi environment variables
+
+Buat file `.env.local` di **akar proyek** (sejajar dengan `package.json`), lalu isi dengan variabel dari project Supabase Anda:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Cara mendapatkan nilai:
+
+1. Buka [Supabase Dashboard](https://app.supabase.com) → pilih project (atau buat baru)
+2. **Settings** → **API**  
+   - **Project URL** → salin ke `NEXT_PUBLIC_SUPABASE_URL`  
+   - **anon public** key → salin ke `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Jangan commit `.env.local` ke Git (sudah diabaikan lewat `.gitignore`).
+
+### 3. Setup database Supabase
+
+Jalankan semua file migrasi di folder `supabase/migrations/` **secara berurutan** lewat Supabase:
+
+- Buka **SQL Editor** di dashboard Supabase
+- Jalankan isi setiap file dari `001_initial_schema.sql` sampai file migrasi terakhir (urut nomor)
+
+Atau dengan Supabase CLI (jika sudah terpasang dan terhubung ke project):
+
+```bash
+supabase db push
+```
+
+Setelah migrasi selesai, buat user percobaan (admin/guru_bk/siswa) sesuai helper di migrasi (mis. `016_create_admin_user_helper.sql`, `009_create_guru_bk_user_helper.sql`, dan skema profil siswa).
+
+---
+
+## Menjalankan Proyek
+
+### Mode development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000) di browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build untuk production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+### Menjalankan build production
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Struktur Proyek (Ringkas)
 
-## Deploy on Vercel
+```
+Sistem-Manajemen-BK/
+├── src/
+│   ├── app/
+│   │   ├── page.tsx              # Halaman utama (landing + cek NIS)
+│   │   ├── login/                # Login
+│   │   ├── admin/                # Dashboard & fitur Admin
+│   │   ├── guru-bk/              # Dashboard & fitur Guru BK
+│   │   ├── student/              # Dashboard Siswa
+│   │   └── ...
+│   ├── components/               # Komponen UI
+│   ├── lib/                      # Utilitas
+│   ├── types/                    # TypeScript types (Supabase)
+│   └── utils/
+│       └── supabase/             # Client, server, middleware Supabase
+├── supabase/
+│   └── migrations/               # Skema & migrasi database
+├── .env.local                    # Variabel lingkungan (buat sendiri)
+└── package.json
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Peran (Role) Pengguna
+
+| Role     | Deskripsi singkat                    |
+|----------|--------------------------------------|
+| `admin`  | Akses penuh: kategori, data, pengguna |
+| `guru_bk`| Input catatan BK, kategori, lihat siswa |
+| `student`| Hanya lihat skor & riwayat sendiri   |
+
+Role disimpan di tabel `profiles` dan di-enforce lewat RLS di Supabase.
+
+---
+
+## Script NPM
+
+| Perintah       | Kegunaan                |
+|----------------|-------------------------|
+| `npm run dev`  | Server development      |
+| `npm run build`| Build production        |
+| `npm start`    | Jalankan build production |
+| `npm run lint` | Cek lint (ESLint)       |
+
+---
+
+## Repositori
+
+- **GitHub:** [https://github.com/Shiroizx/Sistem-Manajemen-BK](https://github.com/Shiroizx/Sistem-Manajemen-BK)
+
+Jika ada pertanyaan atau ingin berkontribusi, silakan buat Issue atau Pull Request di repositori tersebut.
