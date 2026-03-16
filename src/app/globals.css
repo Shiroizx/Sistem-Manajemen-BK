@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 
 :root {
   --background: #ffffff;
@@ -8,8 +9,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +22,52 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+/* Fix Select dropdown text color - Force high contrast */
+.select__value,
+[data-slot="value"] {
+  color: rgb(24 24 27) !important; /* zinc-900 */
+}
+
+.dark .select__value,
+.dark [data-slot="value"] {
+  color: rgb(255 255 255) !important; /* white */
+}
+
+/* Fix placeholder text color */
+.select__value[data-placeholder="true"],
+[data-slot="value"][data-placeholder="true"] {
+  color: rgb(63 63 70) !important; /* zinc-600 */
+}
+
+.dark .select__value[data-placeholder="true"],
+.dark [data-slot="value"][data-placeholder="true"] {
+  color: rgb(161 161 170) !important; /* zinc-400 */
+}
+
+.listbox__item,
+[role="option"] {
+  color: rgb(24 24 27) !important; /* zinc-900 */
+}
+
+.dark .listbox__item,
+.dark [role="option"] {
+  color: rgb(255 255 255) !important; /* white */
+}
+
+/* Ensure text inside ListBox items is visible */
+.listbox__item span,
+[role="option"] span,
+.listbox__item div,
+[role="option"] div {
+  color: rgb(24 24 27) !important; /* zinc-900 */
+}
+
+.dark .listbox__item span,
+.dark [role="option"] span,
+.dark .listbox__item div,
+.dark [role="option"] div {
+  color: rgb(255 255 255) !important; /* white */
 }
