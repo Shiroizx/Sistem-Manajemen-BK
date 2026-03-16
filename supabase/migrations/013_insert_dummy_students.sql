@@ -75,7 +75,7 @@ BEGIN
     
     student_ids := array_append(student_ids, student_id);
     
-    -- Insert profile
+    -- Insert profile (kolom lengkap diisi oleh migrasi 024)
     BEGIN
       INSERT INTO public.profiles (id, full_name, nis, role)
       VALUES (

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import { Surface, Table, TextField, Button, Alert } from '@heroui/react'
+import { Surface, Table, TextField, Button, Alert, Label, Input } from '@heroui/react'
 import { AnimatedGridPattern } from '@/components/ui/animated-grid-pattern'
 import { getStudentDataByNIS } from './student-actions'
 import type { StudentData } from './student-actions'
@@ -76,7 +76,7 @@ export function StudentDashboardClient() {
         setError('NIS tidak ditemukan. Pastikan NIS yang Anda masukkan benar.')
         setStudentData(null)
       }
-    } catch (err) {
+    } catch {
       setError('Terjadi kesalahan saat mengambil data. Silakan coba lagi.')
       setStudentData(null)
     } finally {
@@ -124,37 +124,40 @@ export function StudentDashboardClient() {
             <Surface variant="default" className="rounded-2xl p-8">
               <form onSubmit={handleSearch} className="space-y-4">
                 <TextField
-                  label="Nomor Induk Siswa (NIS)"
-                  placeholder="Masukkan NIS siswa"
-                  value={nis}
-                  onChange={(e) => setNis(e.target.value)}
+                  name="nis"
                   isRequired
-                  variant="bordered"
-                  classNames={{
-                    input: 'text-lg',
-                    label: 'text-gray-700 dark:text-gray-300',
-                  }}
-                  description="Masukkan NIS siswa yang terdaftar di sistem"
-                />
-                <Button
-                  type="submit"
-                  color="default"
-                  size="lg"
-                  isLoading={loading}
-                  className="w-full bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900"
+                  className="w-full [&_label]:text-gray-700 [&_label]:dark:text-gray-300 [&_label[data-required=true]]:after:content-['*'] [&_label[data-required=true]]:after:text-gray-500 [&_label[data-required=true]]:after:ml-1 [&_input]:text-lg"
                 >
-                  {loading ? 'Mencari...' : 'Cari Data Siswa'}
-                </Button>
+                  <Label>Nomor Induk Siswa (NIS)</Label>
+                  <Input
+                    placeholder="Masukkan NIS siswa"
+                    value={nis}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNis(e.target.value)}
+                    autoComplete="off"
+                  />
+                </TextField>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900"
+                isDisabled={loading}
+              >
+                {loading ? 'Mencari...' : 'Cari Data Siswa'}
+              </Button>
               </form>
 
               {error && (
                 <Alert
-                  variant="flat"
-                  color="danger"
-                  className="mt-4"
-                  title="Error"
-                  description={error}
-                />
+                  status="danger"
+                  className="mt-4 border border-red-200/50 bg-red-50/50 dark:border-red-900/30 dark:bg-red-950/20"
+                >
+                  <Alert.Indicator />
+                  <Alert.Content>
+                    <Alert.Description className="text-sm text-red-800 dark:text-red-300">
+                      {error}
+                    </Alert.Description>
+                  </Alert.Content>
+                </Alert>
               )}
             </Surface>
           </div>

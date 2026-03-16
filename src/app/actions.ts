@@ -21,23 +21,44 @@ export interface StudentSearchResult {
   records: StudentRecord[]
 }
 
-/**
- * Search student by NIS (public access - no authentication required)
- */
-export async function searchStudentByNIS(nis: string): Promise<StudentSearchResult | null> {
+type SearchMode = 'nis' | 'name'
+
+async function searchStudentInternal(
+  query: string,
+  mode: SearchMode
+): Promise<StudentSearchResult | null> {
   const supabase = await createClient()
 
-  if (!nis || nis.trim() === '') {
+  if (!query || query.trim() === '') {
     return null
   }
 
-  // Get student profile by NIS (public access via RLS)
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, full_name, nis')
-    .eq('nis', nis.trim())
-    .eq('role', 'student')
-    .maybeSingle()
+  let profile
+  let profileError
+
+  if (mode === 'nis') {
+    // Cari berdasarkan NIS (kebijakan RLS publik sudah ada)
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, nis')
+      .eq('nis', query.trim())
+      .eq('role', 'student')
+      .maybeSingle()
+    profile = data
+    profileError = error
+  } else {
+    // Cari berdasarkan nama lengkap (ambil satu siswa yang paling cocok)
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, nis')
+      .ilike('full_name', `%${query.trim()}%`)
+      .eq('role', 'student')
+      .order('full_name', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    profile = data
+    profileError = error
+  }
 
   if (profileError) {
     console.error('Error fetching profile:', profileError)
@@ -92,5 +113,22 @@ export async function searchStudentByNIS(nis: string): Promise<StudentSearchResu
     totalScore,
     records: transformedRecords,
   }
+}
+
+/**
+ * Search student by NIS (public access - backward compatible helper)
+ */
+export async function searchStudentByNIS(nis: string): Promise<StudentSearchResult | null> {
+  return searchStudentInternal(nis, 'nis')
+}
+
+/**
+ * Search student by either NIS or full name, based on mode
+ */
+export async function searchStudent(
+  query: string,
+  mode: SearchMode
+): Promise<StudentSearchResult | null> {
+  return searchStudentInternal(query, mode)
 }
 

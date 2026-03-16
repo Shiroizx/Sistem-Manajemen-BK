@@ -8,6 +8,7 @@ export interface StudentWithScore {
   student_id: string
   full_name: string
   nis: string | null
+  class_name: string | null
   total_score: number
   total_records: number
 }
@@ -51,7 +52,17 @@ export async function getStudents(): Promise<StudentWithScore[]> {
     return []
   }
 
-  return students || []
+  // Pastikan selalu mengembalikan struktur StudentWithScore lengkap
+  return (
+    students?.map((s) => ({
+      student_id: s.student_id,
+      full_name: s.full_name,
+      nis: s.nis,
+      class_name: (s as { class_name?: string | null }).class_name ?? null,
+      total_score: s.total_score,
+      total_records: s.total_records,
+    })) || []
+  )
 }
 
 /**

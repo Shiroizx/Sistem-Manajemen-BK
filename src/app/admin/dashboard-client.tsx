@@ -11,15 +11,47 @@ import {
   Select,
   ListBox,
   Label,
-  TextField,
   TextArea,
 } from '@heroui/react'
 import { AnimatedGridPattern } from '@/components/ui/animated-grid-pattern'
 import { addStudentRecord, getPointCategories, type StudentWithScore, type DashboardStats, type PointCategory } from './actions'
 
+type SortKey = 'full_name' | 'nis' | 'class_name' | 'total_score' | 'total_records'
+
 interface AdminDashboardClientProps {
   initialStudents: StudentWithScore[]
   initialStats: DashboardStats
+}
+
+interface SortHeaderProps {
+  columnKey: SortKey
+  label: string
+  sortKey: SortKey
+  sortDir: 'asc' | 'desc'
+  onSort: (key: SortKey) => void
+}
+
+function SortHeader({ columnKey, label, sortKey, sortDir, onSort }: SortHeaderProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(columnKey)}
+      className="inline-flex items-center gap-1 font-medium text-gray-900 dark:text-white hover:opacity-80"
+    >
+      {label}
+      {sortKey === columnKey ? (
+        sortDir === 'asc' ? (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+          </svg>
+        ) : (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        )
+      ) : null}
+    </button>
+  )
 }
 
 export function AdminDashboardClient({
@@ -32,7 +64,10 @@ export function AdminDashboardClient({
   const [selectedStudent, setSelectedStudent] = useState<StudentWithScore | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+  const [sortKey, setSortKey] = useState<SortKey>('full_name')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [selectedClass, setSelectedClass] = useState<string>('all')
+
   const statsRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
 
@@ -44,6 +79,49 @@ export function AdminDashboardClient({
   // Use useMemo to derive state from props instead of setState in effect
   const students = useMemo(() => initialStudents, [initialStudents])
   const stats = useMemo(() => initialStats, [initialStats])
+
+  const classOptions = useMemo(() => {
+    const set = new Set<string>()
+    for (const s of students) {
+      if (s.class_name) set.add(s.class_name)
+    }
+    return Array.from(set).sort()
+  }, [students])
+
+  const sortedStudents = useMemo(() => {
+    let list = [...students]
+
+    if (selectedClass !== 'all') {
+      list = list.filter((s) => (s.class_name ?? '') === selectedClass)
+    }
+    list.sort((a, b) => {
+      let cmp = 0
+      if (sortKey === 'full_name' || sortKey === 'nis' || sortKey === 'class_name') {
+        const aVal = (a[sortKey] ?? '').toString().toLowerCase()
+        const bVal = (b[sortKey] ?? '').toString().toLowerCase()
+        if (aVal < bVal) cmp = -1
+        else if (aVal > bVal) cmp = 1
+      } else {
+        const aVal = a.total_score
+        const bVal = b.total_score
+        if (sortKey === 'total_records') {
+          cmp = (a.total_records ?? 0) - (b.total_records ?? 0)
+        } else {
+          cmp = aVal - bVal
+        }
+      }
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+    return list
+  }, [students, sortKey, sortDir, selectedClass])
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
 
   // GSAP animations
   useEffect(() => {
@@ -214,38 +292,91 @@ export function AdminDashboardClient({
         {/* Student Table */}
         <div ref={tableRef}>
           <Surface variant="default" className="rounded-2xl p-6">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Daftar Siswa
               </h2>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Filter kelas:
+                </span>
+                <select
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-gray-900 shadow-sm outline-none transition focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-white dark:focus:ring-white"
+                >
+                  <option value="all">Semua Kelas</option>
+                  {classOptions.map((kelas) => (
+                    <option key={kelas} value={kelas}>
+                      {kelas}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <Table>
               <Table.ScrollContainer>
                 <Table.Content aria-label="Student list" className="min-w-[800px]">
                   <Table.Header>
-                    <Table.Column isRowHeader>Nama</Table.Column>
-                    <Table.Column>NIS</Table.Column>
-                    <Table.Column>Total Skor</Table.Column>
-                    <Table.Column>Jumlah Catatan</Table.Column>
+                    <Table.Column isRowHeader>
+                      <SortHeader
+                        columnKey="full_name"
+                        label="Nama"
+                        sortKey={sortKey}
+                        sortDir={sortDir}
+                        onSort={handleSort}
+                      />
+                    </Table.Column>
+                    <Table.Column>
+                      <SortHeader
+                        columnKey="nis"
+                        label="NIS"
+                        sortKey={sortKey}
+                        sortDir={sortDir}
+                        onSort={handleSort}
+                      />
+                    </Table.Column>
+                    <Table.Column>Kelas</Table.Column>
+                    <Table.Column>
+                      <SortHeader
+                        columnKey="total_score"
+                        label="Total Skor"
+                        sortKey={sortKey}
+                        sortDir={sortDir}
+                        onSort={handleSort}
+                      />
+                    </Table.Column>
+                    <Table.Column>
+                      <SortHeader
+                        columnKey="total_records"
+                        label="Jumlah Catatan"
+                        sortKey={sortKey}
+                        sortDir={sortDir}
+                        onSort={handleSort}
+                      />
+                    </Table.Column>
                     <Table.Column className="text-end">Aksi</Table.Column>
                   </Table.Header>
                   <Table.Body
                     renderEmptyState={() => (
                       <Table.Row>
-                        <Table.Cell colSpan={5} className="text-center text-gray-500">
+                        <Table.Cell colSpan={6} className="text-center text-gray-500">
                           Tidak ada data siswa
                         </Table.Cell>
                       </Table.Row>
                     )}
                   >
-                    {students.map((student: StudentWithScore) => (
+                    {sortedStudents.map((student: StudentWithScore) => (
                       <Table.Row key={student.student_id}>
                         <Table.Cell className="font-medium text-gray-900 dark:text-white">
                           {student.full_name}
                         </Table.Cell>
                         <Table.Cell className="text-gray-600 dark:text-gray-400">
                           {student.nis || '-'}
+                        </Table.Cell>
+                        <Table.Cell className="text-gray-600 dark:text-gray-400">
+                          {student.class_name ?? '-'}
                         </Table.Cell>
                         <Table.Cell>
                           <span

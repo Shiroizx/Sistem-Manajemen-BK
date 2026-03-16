@@ -17,6 +17,15 @@ export interface StudentDetail {
     id: string
     full_name: string
     nis: string | null
+    class_name: string | null
+    birth_place: string | null
+    birth_date: string | null
+    address: string | null
+    student_wa: string | null
+    father_name: string | null
+    father_wa: string | null
+    mother_name: string | null
+    mother_wa: string | null
   }
   totalScore: number
   records: StudentRecord[]
@@ -49,10 +58,12 @@ export async function getStudentDetail(studentId: string): Promise<StudentDetail
     return null
   }
 
-  // Get student profile
+  // Get student profile with full details
   const { data: studentProfile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, full_name, nis')
+    .select(
+      'id, full_name, nis, class_name, birth_place, birth_date, address, student_wa, father_name, father_wa, mother_name, mother_wa'
+    )
     .eq('id', studentId)
     .eq('role', 'student')
     .maybeSingle()

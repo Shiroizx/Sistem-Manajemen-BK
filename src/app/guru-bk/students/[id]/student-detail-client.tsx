@@ -92,6 +92,9 @@ export function StudentDetailClient({ studentDetail }: StudentDetailClientProps)
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 NIS: {studentDetail.profile.nis || '-'}
               </p>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Kelas: {studentDetail.profile.class_name || '-'}
+              </p>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
@@ -131,6 +134,84 @@ export function StudentDetailClient({ studentDetail }: StudentDetailClientProps)
           </div>
         </Surface>
 
+        {/* Data Siswa Lengkap */}
+        <Surface variant="default" className="rounded-2xl p-6">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-zinc-500">
+            Data Siswa
+          </h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-500">NIS</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.nis || '-'}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-500">Kelas</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.class_name || '-'}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-500">Tempat Lahir</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.birth_place || '-'}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-500">Tanggal Lahir</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.birth_date || '-'}
+              </p>
+            </div>
+            <div className="space-y-1 md:col-span-2">
+              <p className="text-xs font-medium text-zinc-500">Alamat</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.address || '-'}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-500">No. WA Siswa</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.student_wa || '-'}
+              </p>
+            </div>
+            <div className="space-y-1" />
+          </div>
+
+          <hr className="my-4 border-zinc-200 dark:border-zinc-800" />
+
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">
+            Data Orang Tua
+          </h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-500">Nama Ayah</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.father_name || '-'}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-500">No. WA Ayah</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.father_wa || '-'}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-500">Nama Ibu</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.mother_name || '-'}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zinc-500">No. WA Ibu</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                {studentDetail.profile.mother_wa || '-'}
+              </p>
+            </div>
+          </div>
+        </Surface>
+
         {/* Timeline */}
         <Surface variant="default" className="rounded-2xl p-6">
           <h2 className="mb-6 text-xl font-bold text-gray-900 dark:text-white">
@@ -148,7 +229,7 @@ export function StudentDetailClient({ studentDetail }: StudentDetailClientProps)
               {/* Timeline Line */}
               <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-zinc-200 via-zinc-300 to-transparent dark:from-zinc-700 dark:via-zinc-600" />
 
-              {studentDetail.records.map((record, index) => (
+              {studentDetail.records.map((record) => (
                 <div key={record.id} className="relative flex gap-4">
                   {/* Timeline Node */}
                   <div

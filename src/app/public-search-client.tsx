@@ -9,10 +9,11 @@ import {
   Alert,
 } from '@heroui/react'
 import { DotPattern } from '@/components/ui/dot-pattern'
-import { searchStudentByNIS, type StudentSearchResult } from './actions'
+import { searchStudent, type StudentSearchResult } from './actions'
 
 export function PublicSearchClient() {
-  const [nis, setNis] = useState('')
+  const [query, setQuery] = useState('')
+  const [mode, setMode] = useState<'nis' | 'name'>('nis')
   const [studentData, setStudentData] = useState<StudentSearchResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -83,13 +84,17 @@ export function PublicSearchClient() {
     setLoading(true)
 
     try {
-      const data = await searchStudentByNIS(nis.trim())
+      const data = await searchStudent(query.trim(), mode)
       if (data) {
         setStudentData(data)
         // Reset timeline refs
         timelineItemsRef.current = []
       } else {
-        setError('NIS tidak ditemukan. Pastikan NIS yang Anda masukkan benar.')
+        setError(
+          mode === 'nis'
+            ? 'NIS tidak ditemukan. Pastikan NIS yang Anda masukkan benar.'
+            : 'Nama siswa tidak ditemukan. Pastikan nama lengkap sudah benar atau coba variasi lain.'
+        )
         setStudentData(null)
       }
     } catch {
@@ -102,7 +107,7 @@ export function PublicSearchClient() {
 
   const handleReset = () => {
     setStudentData(null)
-    setNis('')
+    setQuery('')
     setError(null)
     timelineItemsRef.current = []
   }
@@ -150,22 +155,22 @@ export function PublicSearchClient() {
         </header>
 
         {/* Main Content */}
-        <main className="flex flex-1 items-center justify-center px-6 pb-12">
-          <div className="w-full max-w-4xl">
+        <main className="flex flex-1 items-center justify-center px-4 pb-10 sm:px-6 sm:pb-12">
+          <div className="w-full max-w-lg sm:max-w-3xl lg:max-w-4xl">
             {/* Search Card */}
             {!studentData && (
-              <div ref={searchCardRef} className="mx-auto w-full max-w-md">
+              <div ref={searchCardRef} className="mx-auto w-full max-w-md sm:max-w-lg">
                 <Card className="border border-zinc-200/50 bg-white/80 backdrop-blur-sm shadow-lg dark:border-zinc-800/50 dark:bg-zinc-900/80">
-                  <Card.Header className="flex flex-col gap-2 px-8 pt-8 pb-6">
-                    <Card.Title className="text-2xl font-bold text-zinc-900 dark:text-white">
+                  <Card.Header className="flex flex-col gap-2 px-5 pt-6 pb-4 sm:px-8 sm:pt-8 sm:pb-6">
+                    <Card.Title className="text-xl font-bold text-zinc-900 dark:text-white sm:text-2xl">
                       Cari Data Siswa
                     </Card.Title>
                     <Card.Description className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Masukkan NIS siswa untuk melihat catatan dan skor
+                      Cari berdasarkan NIS atau nama lengkap untuk melihat catatan dan skor
                     </Card.Description>
                   </Card.Header>
 
-                  <Card.Content className="px-8 pb-8">
+                  <Card.Content className="px-5 pb-6 sm:px-8 sm:pb-8">
                     <form onSubmit={handleSearch} className="flex flex-col gap-4">
                       {error && (
                         <Alert
@@ -181,7 +186,7 @@ export function PublicSearchClient() {
                         </Alert>
                       )}
 
-                      <div className="relative">
+                      <div className="space-y-3">
                         <div className="relative">
                           <svg
                             className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500"
@@ -197,15 +202,44 @@ export function PublicSearchClient() {
                             />
                           </svg>
                           <Input
-                            name="nis"
-                            value={nis}
-                            onChange={(e) => setNis(e.target.value)}
-                            placeholder="00019"
+                            name="query"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder={mode === 'nis' ? 'Contoh: 00019' : 'Contoh: Ahmad Santoso'}
                             autoComplete="off"
                             disabled={loading}
                             variant="secondary"
                             className="w-full pl-10 text-zinc-900 placeholder:text-zinc-400 dark:text-white dark:placeholder:text-zinc-500"
                           />
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                            Cari berdasarkan:
+                          </p>
+                          <div className="inline-flex rounded-full border border-zinc-200 bg-zinc-50 p-0.5 text-xs font-medium dark:border-zinc-700 dark:bg-zinc-900">
+                            <button
+                              type="button"
+                              onClick={() => setMode('nis')}
+                              className={`rounded-full px-3 py-1 transition ${
+                                mode === 'nis'
+                                  ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+                                  : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                              }`}
+                            >
+                              NIS
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMode('name')}
+                              className={`rounded-full px-3 py-1 transition ${
+                                mode === 'name'
+                                  ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+                                  : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                              }`}
+                            >
+                              Nama Lengkap
+                            </button>
+                          </div>
                         </div>
                       </div>
 
@@ -230,8 +264,8 @@ export function PublicSearchClient() {
                 {/* Profile & Score Card */}
                 <div ref={profileCardRef}>
                   <Card className="border border-zinc-200/50 bg-white/80 backdrop-blur-sm shadow-lg dark:border-zinc-800/50 dark:bg-zinc-900/80">
-                    <Card.Content className="p-8">
-                      <div className="flex items-center justify-between gap-8">
+                    <Card.Content className="p-5 sm:p-8">
+                      <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
                         {/* Left: Student Info */}
                         <div className="flex-1">
                           <h2 className="text-2xl font-bold text-zinc-900 dark:text-white sm:text-3xl">
@@ -243,7 +277,7 @@ export function PublicSearchClient() {
                         </div>
 
                         {/* Right: Score Display */}
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 self-stretch sm:self-auto">
                           <div className="text-right">
                             <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                               Total Skor
@@ -286,13 +320,13 @@ export function PublicSearchClient() {
                 {/* Timeline Section */}
                 <div ref={timelineRef}>
                   <Card className="border border-zinc-200/50 bg-white/80 backdrop-blur-sm shadow-lg dark:border-zinc-800/50 dark:bg-zinc-900/80">
-                    <Card.Header className="px-8 pt-8 pb-6">
+                    <Card.Header className="px-5 pt-6 pb-4 sm:px-8 sm:pt-8 sm:pb-6">
                       <Card.Title className="text-xl font-bold text-zinc-900 dark:text-white sm:text-2xl">
                         Riwayat Catatan
                       </Card.Title>
                     </Card.Header>
 
-                    <Card.Content className="px-8 pb-8">
+                    <Card.Content className="px-5 pb-6 sm:px-8 sm:pb-8">
                       {studentData.records.length === 0 ? (
                         <div className="py-12 text-center">
                           <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -301,11 +335,11 @@ export function PublicSearchClient() {
                         </div>
                       ) : (
                         <div className="relative">
-                          {/* Vertical Timeline Line */}
-                          <div className="absolute left-6 top-0 h-full w-px bg-gradient-to-b from-zinc-200 via-zinc-200/50 to-transparent dark:from-zinc-700 dark:via-zinc-700/50" />
+                          {/* Vertical Timeline Line (desktop only) */}
+                          <div className="pointer-events-none absolute left-6 top-0 hidden h-full w-px bg-gradient-to-b from-zinc-200 via-zinc-200/50 to-transparent dark:from-zinc-700 dark:via-zinc-700/50 sm:block" />
 
                           {/* Timeline Items */}
-                          <div className="space-y-6">
+                          <div className="space-y-5 sm:space-y-6">
                             {studentData.records.map((record, index) => {
                               const isAchievement = record.category_type === 'achievement'
                               const ringColor = isAchievement
@@ -324,10 +358,10 @@ export function PublicSearchClient() {
                                   ref={(el) => {
                                     if (el) timelineItemsRef.current[index] = el
                                   }}
-                                  className="relative flex gap-6"
+                                  className="relative sm:flex sm:gap-6"
                                 >
-                                  {/* Timeline Node */}
-                                  <div className="relative z-10 flex shrink-0 items-center">
+                                  {/* Timeline Node (hidden on mobile for more space) */}
+                                  <div className="relative z-10 hidden shrink-0 items-center sm:flex">
                                     <div
                                       className={`relative flex h-12 w-12 items-center justify-center rounded-full ${ringColor} ring-2 ${ringDotColor}`}
                                     >
@@ -338,9 +372,9 @@ export function PublicSearchClient() {
                                   </div>
 
                                   {/* Record Card */}
-                                  <div className="flex-1 rounded-xl border border-zinc-200/50 bg-white p-5 shadow-sm dark:border-zinc-800/50 dark:bg-zinc-900/50">
-                                    <div className="flex items-start justify-between gap-4">
-                                      <div className="flex-1 space-y-2">
+                                  <div className="rounded-xl border border-zinc-200/50 bg-white p-4 shadow-sm dark:border-zinc-800/50 dark:bg-zinc-900/50 sm:flex-1 sm:p-5">
+                                    <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                                      <div className="w-full flex-1 space-y-2">
                                         <h4 className="font-semibold text-zinc-900 dark:text-white">
                                           {record.category_name}
                                         </h4>
@@ -372,7 +406,7 @@ export function PublicSearchClient() {
                                       </div>
 
                                       {/* Category Pill with Score */}
-                                      <div className="flex shrink-0 flex-col items-end gap-2">
+                                      <div className="mt-2 flex w-full shrink-0 flex-row items-center justify-between gap-2 sm:mt-0 sm:w-auto sm:flex-col sm:items-end">
                                         <span
                                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
                                             isAchievement

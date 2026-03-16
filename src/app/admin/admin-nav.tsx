@@ -9,6 +9,7 @@ export function AdminNav() {
 
   const navItems = [
     { href: '/admin', label: 'Dashboard' },
+    { href: '/admin/students', label: 'Data Siswa' },
     { href: '/admin/categories', label: 'Kategori' },
   ]
 

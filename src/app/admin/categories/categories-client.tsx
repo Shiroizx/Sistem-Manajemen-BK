@@ -6,7 +6,6 @@ import { gsap } from 'gsap'
 import {
   Button,
   Table,
-  Chip,
   Modal,
   Input,
   Select,
@@ -192,7 +191,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
             Kelola Kategori Poin
@@ -236,7 +235,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                 renderEmptyState={() => (
                   <div className="py-12 text-center">
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Belum ada kategori. Klik "Tambah Kategori" untuk menambahkan.
+                      Belum ada kategori. Klik &quot;Tambah Kategori&quot; untuk menambahkan.
                     </p>
                   </div>
                 )}
@@ -505,7 +504,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                 <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
                   Apakah Anda yakin ingin menghapus kategori{' '}
                   <span className="font-bold text-zinc-900 dark:text-white">
-                    "{deletingCategory?.name}"
+                    &quot;{deletingCategory?.name}&quot;
                   </span>
                   ? Tindakan ini tidak dapat dibatalkan.
                 </p>

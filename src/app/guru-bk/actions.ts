@@ -5,9 +5,10 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 
 export interface StudentWithScore {
-  id: string // This will be mapped from student_id
+  id: string
   full_name: string
   nis: string | null
+  class_name: string | null
   total_score: number
   total_records: number
 }
@@ -40,7 +41,7 @@ export async function getStudents(): Promise<StudentWithScore[]> {
   // Then calculate scores manually
   const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
-    .select('id, full_name, nis, role')
+    .select('id, full_name, nis, role, class_name')
     .eq('role', 'student')
     .order('full_name', { ascending: true })
 
@@ -94,6 +95,7 @@ export async function getStudents(): Promise<StudentWithScore[]> {
         id: profile.id,
         full_name: profile.full_name,
         nis: profile.nis,
+        class_name: profile.class_name ?? null,
         total_score: totalScore,
         total_records: studentRecords.length,
       }
